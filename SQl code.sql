@@ -31,7 +31,9 @@ group by year(order_date),month(order_date)
 order by year(order_date),month(order_date)
 )
 select order_month,sum(case when order_year=2022 then sales end) as 2022_sales,
-sum(case when order_year=2023 then sales end) as 2023_sales
+sum(case when order_year=2023 then sales end) as 2023_sales,
+ (sum(case when order_year=2023 then sales end)-sum(case when order_year=2022 then sales end))
+/sum(case when order_year=2022 then sales end)*100
 from month_wise_sales
 group by order_month; 
 
@@ -55,21 +57,14 @@ where rnk=1;
 
 # which sub category has highest growth by profit in 2023 compare to 2022
 with subcat_sales as(
-select sub_category, year(order_date) as order_year,
-sum(sale_price) as sales
-from df_orders
-group by sub_category, year(order_date)
-order by sub_category, year(order_date)
-),
-year_sales as(
 select sub_category,
-sum(case when order_year=2022 then sales end) as sales_2022,
-sum(case when order_year=2023 then sales end) as sales_2023
+sum(case when year(order_date)=2022 then sale_prcie end) as sales_2022,
+sum(case when year(order_date)=2023 then sale_price end) as sales_2023
 from subcat_sales
 group by sub_category
 )
 select *, (sales_2023-sales_2022)/sales_2022*100
 as growth
-from year_sales
+from subcat_sales
 order by growth desc
 limit 1;
